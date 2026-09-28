@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: chatapp-backend
+    env: node
+    region: singapore
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CLIENT_ORIGIN
+        value: "*"
+      - key: MONGO_URI
+        sync: false

@@ -3,25 +3,31 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
 export const getBaseUrl = () => {
-  // Web Browser environment
+  // 1. Explicitly configured server URL in app.json extra or environment
+  const configuredUrl = Constants.expoConfig?.extra?.SERVER_URL || process.env.EXPO_PUBLIC_SERVER_URL;
+  if (configuredUrl && configuredUrl.trim() !== '') {
+    return configuredUrl.trim().replace(/\/$/, '');
+  }
+
+  // 2. Web Browser environment
   if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location) {
     const host = window.location.hostname || 'localhost';
     return `http://${host}:5000`;
   }
 
-  // Expo Go / Mobile Device environment - extract host IP automatically
+  // 3. Expo Go environment - extract host IP automatically
   const hostUri = Constants.expoConfig?.hostUri || Constants.manifest2?.extra?.expoGo?.debuggerHost;
   if (hostUri) {
     const ip = hostUri.split(':')[0];
     return `http://${ip}:5000`;
   }
 
-  // Android Emulator fallback
+  // 4. Fallback Wi-Fi IP for standalone Android APKs
+  const defaultWifiIp = '10.213.255.50';
   if (Platform.OS === 'android') {
-    return 'http://10.0.2.2:5000';
+    return `http://${defaultWifiIp}:5000`;
   }
 
-  // iOS Simulator / Default fallback
   return 'http://localhost:5000';
 };
 
@@ -36,7 +42,7 @@ const api = axios.create({
   }
 });
 
-// Update base URL on each request dynamically if host changes
+// Update base URL dynamically on each request
 api.interceptors.request.use((config) => {
   config.baseURL = `${getBaseUrl()}/api`;
   return config;
