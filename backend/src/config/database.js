@@ -1,6 +1,4 @@
 const path = require('path');
-const sqlite3 = require('sqlite3');
-const { open } = require('sqlite');
 const mongoose = require('mongoose');
 
 let dbInstance = null;
@@ -47,6 +45,10 @@ async function getDatabase() {
   }
 
   if (dbInstance) return dbInstance;
+
+  // Lazy load sqlite3 native drivers ONLY when SQLite fallback is active
+  const sqlite3 = require('sqlite3');
+  const { open } = require('sqlite');
 
   const dbPath = process.env.DB_PATH || path.join(__dirname, '../../chat.db');
 
